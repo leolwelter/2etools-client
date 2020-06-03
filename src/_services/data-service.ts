@@ -7,7 +7,7 @@ export default class DataService {
     public static async getSpells(): Promise<Spell[]> {
         try {
             const response = await axios.get(`${config.apiUrl}/spells`);
-            console.log(response);
+            // console.log(response);
             return response.data;
         } catch (error) {
             console.error(error);

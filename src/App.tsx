@@ -8,6 +8,8 @@ import {
 import Home from "./home/Home";
 import About from "./About/About";
 import Spells from "./Spells/Spells";
+import RollingTray from "./Roller/RollingTray";
+import Conditions from "./Conditions/Conditions";
 
 export default function App() {
     return (
@@ -17,8 +19,10 @@ export default function App() {
                     <Route exact path="/" component={Home} />
                     <Route path="/about" component={About} />
                     <Route path="/spells" component={Spells} />
+                    <Route path="/conditions" component={Conditions} />
                     <Redirect path="**" to='/' />
                 </Switch>
+                <RollingTray/>
             </div>
         </Router>
     );

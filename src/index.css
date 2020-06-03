@@ -3,7 +3,7 @@ html, body {
 }
 
 body {
-  margin: 0 0 10rem 0;
+  margin: 0;
   font-family: Roboto,
   "Helvetica Neue",
   sans-serif;
@@ -104,4 +104,97 @@ hr {
 .tooltip-lg {
   font-size: 0.8rem !important;
   font-style: normal;
+}
+
+.badge-gold {
+  color: #b01820;
+  background-color: #f8d991;
+}
+.badge-red {
+  color: #fff;
+  background-color: #b01820;
+  border-width: 2px;
+  border-color: #f8d991;
+  border-style: double;
+}
+
+div.roller-tray {
+  box-shadow: 0 6px 12px rgba(0,0,0,.175);
+  position: fixed;
+  width: 50vw;
+  max-width: 260px;
+  height: 50vh;
+  max-height: 335px;
+  z-index: 1030;
+  border: 1px solid rgba(0,0,0,.15);
+  right: 1em;
+  bottom: 0;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  background-color: white;
+}
+
+div.roller-tray-hidden {
+  box-shadow: 0 6px 12px rgba(0,0,0,.175);
+  position: fixed;
+  width: 10rem;
+  height: 2rem;
+  z-index: 1030;
+  border: 1px wave rgba(0,0,0,.15);
+  border-radius: 5px 5px 0 0;
+  right: 1em;
+  bottom: 0;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bolder;
+}
+
+.history {
+  max-height: 268px;
+  font-size: 0.9rem;
+  overflow-y: auto;
+}
+.history ul {
+  margin-top: 5px;
+  margin-bottom: 20px;
+  line-height: 0.8rem;
+  font-size: 0.8rem;
+}
+.history li {
+  margin: 0;
+  padding: 0 0 .4rem;
+}
+
+.p-default {
+  cursor: default;
+}
+
+.p-pointer {
+  cursor: pointer;
+}
+
+div.no-padding div {
+  padding: 0
+}
+
+pre {
+  font-family: Roboto,
+  "Helvetica Neue",
+  sans-serif;
+}
+
+.pre-spaced {
+  white-space: pre;
+}
+
+.border-square {
+  border-radius: 0;
+}
+
+.border-rounded {
+  border-radius: 15px;
 }

@@ -12,6 +12,7 @@ import reaction from "../_assets/Reaction.png";
 export default function Spells() {
     let [spells, setSpells] = useState<Spell[]>();
     let [selectedSpell, setSelectedSpell] = useState<Spell>();
+    let [error, setError] = useState<string>();
 
     useEffect(() => {
         DataService.getSpells()
@@ -19,7 +20,8 @@ export default function Spells() {
                 setSpells(succ.sort((a, b) => a.name >= b.name ? 1 : -1))
             })
             .catch(err => {
-                console.error(err)
+                console.error(err);
+                setError('oops, something went wrong. Please reload or try again later.');
             });
     }, []);
 
@@ -35,27 +37,50 @@ export default function Spells() {
         <div>
             <Navbar/>
             <div className='container-fluid'>
+                {!error &&
                 <div className='row'>
                     {/*spells table*/}
                     <div className='col-12 col-md-6'>
-                        <h4 className='text-center'>Spells: Click spells to display details on right</h4>
+                        <h4 className='text-center'>Spells: Click to display details</h4>
                         <div className="table-responsive table-scrollable">
                             {spells?.length ?
                                 <table className="table table-bordered table-hover table-striped">
                                     <thead>
                                     <tr>
-                                        <th className="text-capitalize">level</th>
-                                        <th className="text-capitalize">type</th>
                                         <th className="text-capitalize">name</th>
+                                        <th className="text-capitalize">level</th>
+                                        <th className="text-capitalize">cast</th>
+                                        <th className="text-capitalize">type</th>
+                                        <th className="text-capitalize">source</th>
+                                        <th className="text-capitalize">sustained</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {spells.map(spell => {
                                         return <tr key={spell.id} onClick={() => toggleSpell(spell)}
                                                    className={`${(spell === selectedSpell) ? 'bg-gold text-gold text-bold font-weight-bold' : ''}`}>
-                                            <td>{spell.level}</td>
-                                            <td>{spell.spellType}</td>
-                                            <td>{spell.name}</td>
+                                            <td className='align-middle'>{spell.name}</td>
+                                            <td className='align-middle'>{spell.level}</td>
+                                            <td className='align-middle'>
+                                            {(() => {
+                                                if (spell.trigger) {
+                                                    return <img className='img pr-1' alt='' src={reaction}
+                                                                height='16px'/>
+                                                } else if (spell.actions.length) {
+                                                    return spell.actions.map(act => {
+                                                        let isrc = act === 0 ? freeAction : act === 1 ? oneAction : act === 2 ? twoActions : threeActions;
+                                                        return <img key={`${spell?.id}.${act}`}
+                                                                    className='img pr-1' alt='' src={isrc}
+                                                                    height='16px'/>
+                                                    })
+                                                } else {
+                                                    return <span>{spell.cast}</span>
+                                                }
+                                            })()}
+                                            </td>
+                                            <td className='align-middle'>{spell.spellType}</td>
+                                            <td className='align-middle'>{spell.source.book}</td>
+                                            <td className='text-center align-middle font-weight-bolder'>{spell.isSustained ? 'x' : ''}</td>
                                         </tr>
                                     })}
                                     </tbody>
@@ -84,9 +109,15 @@ export default function Spells() {
                                         {selectedSpell.traits.map(tr => {
                                             return <Tooltip key={`${selectedSpell?.id}.${tr.id}`} title={tr.description}
                                                             classes={{tooltip: 'tooltip-lg'}}>
-                                                <span className="badge badge-secondary">{tr.name}</span>
+                                                <span className="badge badge-red">{tr.name}</span>
                                             </Tooltip>
                                         })}
+                                    </div>
+                                </div>
+                                <div className='row'>
+                                    <div className='col'>
+                                        <span className='font-weight-bold'>Source </span>
+                                        <span className='p-1'>{selectedSpell.source.book} pg. {selectedSpell.source.page}</span>
                                     </div>
                                 </div>
                                 <div className='row row-cols-1'>
@@ -96,7 +127,7 @@ export default function Spells() {
                                             <div>
                                                 {selectedSpell.traditions.map((t, ind, arr) => {
                                                     return <span key={t}
-                                                        className="p-1">{t + (ind === arr.length - 1 ? '' : ',')}</span>
+                                                                 className="p-1">{t + (ind === arr.length - 1 ? '' : ',')}</span>
                                                 })}
                                             </div>
                                         </div>}
@@ -222,6 +253,17 @@ export default function Spells() {
                         </Card>
                     </div>}
                 </div>
+                }
+
+                {/*error handling */}
+                {error &&
+                <div className='row'>
+                    <div className='col'>
+                        <span className='my-5 mx-auto d-block w-50 text-center alert alert-warning'>{error}</span>
+                    </div>
+                </div>
+                }
+
             </div>
         </div>
     )
