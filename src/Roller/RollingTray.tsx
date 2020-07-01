@@ -1,4 +1,15 @@
-import React, {useRef, useState} from "react";
+import React, {
+    forwardRef,
+    PropsWithoutRef,
+    Ref,
+    useContext,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState
+} from "react";
+import DataService from "../_services/data-service";
+import {AppContext} from "../App";
 
 enum CMD_RETURN {
     CLEAR = '/clear',
@@ -6,24 +17,37 @@ enum CMD_RETURN {
     INVALID = 'invalid',
 }
 
-interface RollCommand {
+export interface RollCommand {
     promptLine: string;
     result: string;
     label: string;
 }
 
-const HelpStr: string = 'Use /help to display this message\n'+
-    'type \'XdY\' to roll x dice of y sides\n'+
-    'add a modifier: \'XdY+Z\' or \'XdY-Z\'\n'+
-    'roll a flat check: \'flatX\' or \'fX\'\n'+
-    'Use /clear to clear history.'
+const HelpStr: string = 'Use /help to display this message\n' +
+    'type \'XdY\' to roll X dice of step Y\n' +
+    'add a modifier: \'XdY+Z\' or \'XdY-Z\'\n' +
+    'roll a flat check (DC X): \'flatX\' or \'fX\'\n' +
+    'Use /clear to clear history.\n' +
+    'click on any entry to fill in its prompt\n' +
+    'links highlighted red will be rolled (and show up) here\n' +
+    'the history stays between sessions';
 
-
-export default function RollingTray() {
+function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
     let [history, setHistory] = useState<RollCommand[]>([]);
     let [promptLine, setPromptLine] = useState<string>('');
     let [hidden, setHidden] = useState<boolean>(true);
     let rollerRef = useRef<HTMLInputElement>(null);
+    let globalContext = useContext<any>(AppContext)
+
+    /** handle external components using ref to submit promptLines **/
+    useImperativeHandle(ref, () => ({
+        submitPrompt: (pl: string, label: string) => handleSubmit(null, pl, label)
+    }));
+
+    /** set history on component mount **/
+    useEffect(() => {
+        setHistory(globalContext.context.rollHistory);
+    }, [globalContext.context.rollHistory])
 
     /** returns an integer between min and max **/
     function randInt(min: number, max: number) {
@@ -37,7 +61,7 @@ export default function RollingTray() {
         // parse
         const reDice = /^\s*([0-9]+)d([0-9]+)\s*(([+-])\s*([0-9]+))?\s*$/;
         const reCmd = /^\s*(\/\w+)\s*$/;
-        const reFlat = /^\s*(flat|f)([0-9]+)\s*$/;
+        const reFlat = /^\s*(Flat|F |flat|f)([0-9]+)\s*$/;
         let mDice = promptLine.match(reDice);
         let mCmd = promptLine.match(reCmd);
         let mFlat = promptLine.match(reFlat);
@@ -59,14 +83,14 @@ export default function RollingTray() {
                 modifier >= 0 ? line += ` + ${modifier}` : line += ` - ${Math.abs(modifier)}`;
             }
             line = `${total} = ${line}`;
-            return {label:'Anon', promptLine:promptLine, result: line};
+            return {label: 'Anon', promptLine: promptLine, result: line};
         } else if (mCmd) {
             if (mCmd[1] === CMD_RETURN.CLEAR) {
-                return {label:'', promptLine:CMD_RETURN.CLEAR, result:'cleared'};
-            } else if(mCmd[1] === CMD_RETURN.HELP) {
-                return {label:'Help', promptLine:CMD_RETURN.HELP, result: HelpStr};
+                return {label: '', promptLine: CMD_RETURN.CLEAR, result: 'cleared'};
+            } else if (mCmd[1] === CMD_RETURN.HELP) {
+                return {label: 'Help', promptLine: CMD_RETURN.HELP, result: HelpStr};
             } else {
-                return {label:'', promptLine: CMD_RETURN.INVALID, result: 'invalid input: try /help'};
+                return {label: '', promptLine: CMD_RETURN.INVALID, result: 'invalid input: try /help'};
             }
         } else if (mFlat) {
             let DC = Number.parseInt(mFlat[2], 10);
@@ -74,22 +98,29 @@ export default function RollingTray() {
             let result = roll >= DC ? `SUCCESS! [${roll}] ≥ DC ${DC}` : `FAILURE: [${roll}] < DC ${DC}`;
             return {label: 'Anon', promptLine: promptLine, result: result}
         } else {
-            return {label:'', promptLine: CMD_RETURN.INVALID, result: 'invalid input: try /help'};
+            return {label: '', promptLine: CMD_RETURN.INVALID, result: 'invalid input: try /help'};
         }
     }
 
-    function handleSubmit(event: any) {
-        event.preventDefault();
-        if (promptLine.trim()) {
-            const procLine = processCommand(promptLine);
+    /** process the passed command, set global context and localstorage **/
+    async function handleSubmit(event: any, pLine?: string, label?: string) {
+        console.log('hello');
+        event && event.preventDefault();
+        if (promptLine.trim() || pLine?.trim()) {
+            let procLine = pLine ? processCommand(pLine) : processCommand(promptLine);
+            if (label) procLine.label = label;
             if (procLine.promptLine === CMD_RETURN.CLEAR) {
-                setHistory([procLine]);
+                globalContext.setContext({rollHistory: [procLine]})
+                await DataService.setRollHistory([procLine]);
             } else if (procLine.promptLine === CMD_RETURN.HELP) {
-                setHistory([procLine, ...history]);
-            } else if (procLine.promptLine === CMD_RETURN.INVALID){
-                setHistory([procLine, ...history]);
+                globalContext.setContext({rollHistory: [procLine, ...history]})
+                await DataService.setRollHistory([procLine, ...history]);
+            } else if (procLine.promptLine === CMD_RETURN.INVALID) {
+                globalContext.setContext({rollHistory: [procLine, ...history]})
+                await DataService.setRollHistory([procLine, ...history]);
             } else if (procLine) {
-                setHistory([procLine, ...history]);
+                globalContext.setContext({rollHistory: [procLine, ...history]})
+                await DataService.setRollHistory([procLine, ...history]);
             }
             setPromptLine('');
         }
@@ -130,7 +161,8 @@ export default function RollingTray() {
                                                    }
                                                }}
                                                onChange={(e) => {
-                                                   setPromptLine(e.target.value || '')}
+                                                   setPromptLine(e.target.value || '')
+                                               }
                                                }
                                         />
                                     </form>
@@ -144,10 +176,16 @@ export default function RollingTray() {
                                         <ul className='list-group list-group-flush'>
                                             {history.map((line, ind) => {
                                                 return <li key={ind}
-                                                           onClick={() => {setPromptLine(line.promptLine); rollerRef.current?.focus()}}
+                                                           onClick={() => {
+                                                               setPromptLine(line.promptLine);
+                                                               rollerRef.current?.focus()
+                                                           }}
                                                            className='p-pointer list-group-item list-group-item-light'>
-                                                    {line.label && <label className='text-muted p-pointer'>{`${line.label}: ${line.promptLine}`}</label>}
-                                                    <p className='my-0 pre-spaced'>{line.result}</p>
+                                                    {line.label && <label
+                                                        className='text-muted p-pointer'>{`${line.label}: ${line.promptLine}`}</label>}
+                                                    {line.result.split('\n').map((p, ind) => {
+                                                        return <p key={ind} className='my-1'>{p}</p>
+                                                    })}
                                                 </li>
                                             })}
                                         </ul>
@@ -162,3 +200,5 @@ export default function RollingTray() {
             </div>
     )
 }
+
+export default forwardRef(RollingTray);

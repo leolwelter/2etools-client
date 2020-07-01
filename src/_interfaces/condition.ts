@@ -1,4 +1,4 @@
-import {ContentSource} from "./spell";
+import {Source} from "./trait";
 
 export interface Condition {
     name: string;
@@ -6,7 +6,7 @@ export interface Condition {
     overrides: string[];
     value: string;
     group: string;
-    source: ContentSource
+    source: Source
 }
 
 

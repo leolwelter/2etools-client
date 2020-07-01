@@ -1,19 +1,5 @@
-export interface Trait {
-  id: number;
-  url: string;
-  name: string;
-  source: {
-    book: string,
-    page: number
-  };
-  description: string;
-}
+import {Source, Trait} from "./trait";
 
-export interface ContentSource {
-  book: string;
-  page: number;
-  homebrew: boolean;
-}
 
 export class Spell {
   id: number;
@@ -22,7 +8,7 @@ export class Spell {
   level: number;
   spellType: string;
   traits: Trait[];
-  source: ContentSource;
+  source: Source;
   traditions: string[];
   cast: string;
   requirements: string;

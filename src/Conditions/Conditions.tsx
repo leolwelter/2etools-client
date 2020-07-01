@@ -1,7 +1,8 @@
 import {Condition, conditions} from "../_interfaces/condition";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Navbar from "../Navbar/Navbar";
 import {Card, CardContent} from "@material-ui/core";
+import RollingTray from "../Roller/RollingTray";
 
 interface ConditionGroup {
     [name: string]: Condition[]
@@ -17,6 +18,10 @@ export default function Conditions() {
         else groups[cond.group] = [cond];
     });
 
+    useEffect(() => {
+        document.title = 'Conditions - 2eTools';
+    }, []);
+
     function toggleCondition(cond: Condition) {
         if (cond === selected) setSelected(undefined)
         else setSelected(cond)
@@ -27,13 +32,8 @@ export default function Conditions() {
             <Navbar/>
             <div className='container-fluid'>
                 <div className='row'>
-                    <div className='col text-center'>
-                        <h3>Conditions Reference</h3>
-                    </div>
-                </div>
-                <div className='row'>
                     <div className='col-12 col-md-4'>
-                        <h4 className='text-center'>Spells: Click to display details</h4>
+                        <h4 className='text-center'>Conditions: Click to display details</h4>
                         <div className="table-responsive table-scrollable">
                             <table className="table table-bordered table-hover table-striped">
                                 <thead>
@@ -65,7 +65,11 @@ export default function Conditions() {
                         <Card>
                             <CardContent>
                                 <h4>{selected.name}</h4>
-                                <span>{selected.description}</span>
+                                <span>
+                                    {selected.description.split('\n').map((p, ind) => {
+                                        return <p key={ind}>{p}</p>
+                                    })
+                                    }</span>
                                 <hr/>
                                 {selected.overrides.length > 0 &&
                                 <div>
@@ -88,6 +92,7 @@ export default function Conditions() {
                     }
                 </div>
             </div>
+            <RollingTray/>
         </div>
     )
 }

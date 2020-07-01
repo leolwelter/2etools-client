@@ -13,6 +13,11 @@ export const theme = createMuiTheme({
                 height: 6,
                 borderRadius: 5
             }
+        },
+        MuiTooltip: {
+            tooltip: {
+                fontSize: 14
+            }
         }
     },
 });

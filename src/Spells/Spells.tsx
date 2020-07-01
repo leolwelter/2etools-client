@@ -8,6 +8,7 @@ import oneAction from "../_assets/OneAction.png";
 import twoActions from "../_assets/TwoActions.png";
 import threeActions from "../_assets/ThreeActions_I.png";
 import reaction from "../_assets/Reaction.png";
+import RollingTray from "../Roller/RollingTray";
 
 export default function Spells() {
     let [spells, setSpells] = useState<Spell[]>();
@@ -15,6 +16,7 @@ export default function Spells() {
     let [error, setError] = useState<string>();
 
     useEffect(() => {
+        document.title = 'Spells - 2eTools';
         DataService.getSpells()
             .then(succ => {
                 setSpells(succ.sort((a, b) => a.name >= b.name ? 1 : -1))
@@ -41,18 +43,20 @@ export default function Spells() {
                 <div className='row'>
                     {/*spells table*/}
                     <div className='col-12 col-md-6'>
-                        <h4 className='text-center'>Spells: Click to display details</h4>
+                        <h4>Spells: Click to display details</h4>
+                        <p className='text-muted'>hover over abbreviations to show more/expand tooltips</p>
                         <div className="table-responsive table-scrollable">
                             {spells?.length ?
                                 <table className="table table-bordered table-hover table-striped">
                                     <thead>
-                                    <tr>
-                                        <th className="text-capitalize">name</th>
-                                        <th className="text-capitalize">level</th>
-                                        <th className="text-capitalize">cast</th>
-                                        <th className="text-capitalize">type</th>
-                                        <th className="text-capitalize">source</th>
-                                        <th className="text-capitalize">sustained</th>
+                                    <tr className='text-capitalize text-justify'>
+                                        <th>name</th>
+                                        <th>level</th>
+                                        <th>cast</th>
+                                        <th>type</th>
+                                        <th title='Traditions'>trad.</th>
+                                        <th>source</th>
+                                        <th title='Sustained'>S.</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -62,23 +66,28 @@ export default function Spells() {
                                             <td className='align-middle'>{spell.name}</td>
                                             <td className='align-middle'>{spell.level}</td>
                                             <td className='align-middle'>
-                                            {(() => {
-                                                if (spell.trigger) {
-                                                    return <img className='img pr-1' alt='' src={reaction}
-                                                                height='16px'/>
-                                                } else if (spell.actions.length) {
-                                                    return spell.actions.map(act => {
-                                                        let isrc = act === 0 ? freeAction : act === 1 ? oneAction : act === 2 ? twoActions : threeActions;
-                                                        return <img key={`${spell?.id}.${act}`}
-                                                                    className='img pr-1' alt='' src={isrc}
+                                                {(() => {
+                                                    if (spell.trigger) {
+                                                        return <img className='img pr-1' alt='' src={reaction}
                                                                     height='16px'/>
-                                                    })
-                                                } else {
-                                                    return <span>{spell.cast}</span>
-                                                }
-                                            })()}
+                                                    } else if (spell.actions.length) {
+                                                        return spell.actions.map(act => {
+                                                            let isrc = act === 0 ? freeAction : act === 1 ? oneAction : act === 2 ? twoActions : threeActions;
+                                                            return <img key={`${spell?.id}.${act}`}
+                                                                        className='img pr-1' alt='' src={isrc}
+                                                                        height='16px'/>
+                                                        })
+                                                    } else {
+                                                        return <span>{spell.cast}</span>
+                                                    }
+                                                })()}
                                             </td>
                                             <td className='align-middle'>{spell.spellType}</td>
+                                            <td className='align-middle'>
+                                                {spell.traditions.map(t => {
+                                                    return <p className='badge-gold badge p-pointer' key={t} title={t}>{t.charAt(0).toUpperCase()}</p>
+                                                })}
+                                            </td>
                                             <td className='align-middle'>{spell.source.book}</td>
                                             <td className='text-center align-middle font-weight-bolder'>{spell.isSustained ? 'x' : ''}</td>
                                         </tr>
@@ -95,7 +104,7 @@ export default function Spells() {
                     {/*selected spell in card view*/}
                     {selectedSpell &&
                     <div className='col'>
-                        <Card className='spell-card'>
+                        <Card>
                             <CardContent>
                                 <div className='row'>
                                     <div className='col d-flex font-weight-bolder'>
@@ -117,7 +126,8 @@ export default function Spells() {
                                 <div className='row'>
                                     <div className='col'>
                                         <span className='font-weight-bold'>Source </span>
-                                        <span className='p-1'>{selectedSpell.source.book} pg. {selectedSpell.source.page}</span>
+                                        <span
+                                            className='p-1'>{selectedSpell.source.book} pg. {selectedSpell.source.page}</span>
                                     </div>
                                 </div>
                                 <div className='row row-cols-1'>
@@ -215,7 +225,9 @@ export default function Spells() {
                                 <hr/>
                                 <div className='row row-cols-1'>
                                     <div className='col'>
-                                        <span>{selectedSpell.description}</span>
+                                        {selectedSpell.description.split('\n').map((p, ind) => {
+                                            return <p key={ind}>{p}</p>
+                                        })}
                                         {selectedSpell.criticalSuccess &&
                                         <div>
                                             <span className="font-weight-bold">Critical Success </span>
@@ -265,6 +277,7 @@ export default function Spells() {
                 }
 
             </div>
+            <RollingTray/>
         </div>
     )
 }

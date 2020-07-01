@@ -1,9 +1,4 @@
-import {ContentSource, Trait} from './spell';
-
-export const DefaultShownColumns = ['name', 'traits', 'source',
-  'hitPoints', 'size', 'speed', 'abilityBoosts', 'abilityFlaws', 'languages', 'senses'];
-
-export const CreatureSizes = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+import {Source, Trait} from "./trait";
 
 export class Ancestry {
   id: number;
@@ -11,7 +6,7 @@ export class Ancestry {
   name: string;
 
   traits: Trait[];
-  source: ContentSource;
+  source: Source;
   description: {
     header: string,
     text: string

@@ -1,12 +1,18 @@
-import React from "react";
+import React, {useEffect} from "react";
 import Navbar from "../Navbar/Navbar";
 import {Card, CardContent} from "@material-ui/core";
 import {toplinks} from "../_interfaces/toplink";
 import {Link} from "react-router-dom";
 import Footer from "../Navbar/Footer";
+import RollingTray from "../Roller/RollingTray";
 
 
 export default function Home() {
+
+    useEffect(() => {
+        document.title = '2eTools';
+    }, []);
+
     return (
         <div>
             <Navbar/>
@@ -34,6 +40,7 @@ export default function Home() {
                 </div>
             </div>
             <Footer/>
+            <RollingTray/>
         </div>
 
     )

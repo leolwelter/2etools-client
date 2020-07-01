@@ -1,200 +1,269 @@
 html, body {
-  height: 100%;
+    height: 100%;
 }
 
 body {
-  margin: 0;
-  font-family: Roboto,
-  "Helvetica Neue",
-  sans-serif;
+    margin: 0;
+    font-family: Roboto,
+    "Helvetica Neue",
+    sans-serif;
 }
 
 
 /* custom */
 .form-sticky {
-  top: 50px;
-  position: sticky;
-  z-index: 1030;
+    top: 50px;
+    position: sticky;
+    z-index: 1030;
 }
 
 /* put on the div containing the table */
 @media (max-width: 767px) {
-  .table-scrollable {
-    height: 40vh;
-  }
+    .table-scrollable {
+        height: 40vh;
+    }
 }
+
 @media (min-width: 768px) {
-  .table-scrollable {
-    overflow-y: auto;
-    height: 80vh;
-    margin-bottom: 10px
-  }
+    .table-scrollable {
+        overflow-y: auto;
+        height: 80vh;
+        margin-bottom: 10px
+    }
 }
 
 
 .table-scrollable th {
-  position: sticky;
-  top: -1px;
+    position: sticky;
+    top: -1px;
 }
 
 .table-scrollable th {
-  cursor: pointer;
-  background: #b01820;
-  color: white;
+    cursor: pointer;
+    background: #b01820;
+    color: white;
 }
 
 .table-scrollable tbody {
-  overflow-x: hidden;
+    overflow-x: hidden;
 }
 
 .table-scrollable thead * {
-  padding: 0.1rem;
-  margin: 0.1rem;
+    padding: 0.1rem;
+    margin: 0.1rem;
 }
 
 .table-scrollable tbody * {
-  padding: 0.1rem 0 0.1rem 0;
-  margin: 0;
-  line-height: 1.0;
+    padding: 0.1rem 0 0.1rem 0;
+    margin: 0;
+    line-height: 1.0;
+}
+
+.table-scrollable tbody .badge {
+    padding: 0.15rem;
+    margin: 0.1rem;
 }
 
 .table-scrollable table th {
-  font-size: 1em;
+    font-size: 0.8em;
+    vertical-align: middle;
 }
 
 .table-scrollable table p {
-  font-size: 0.8em;
+    font-size: 0.8em;
 }
 
 p.badge {
-  padding: 0.2rem;
-  margin-bottom: 0.1rem;
+    padding: 0.2rem;
+    margin-bottom: 0.1rem;
 }
 
 .badge {
-  cursor: default;
+    cursor: default;
 }
 
 .table-scrollable td {
-  font-size: 0.8em;
-  cursor: pointer;
+    font-size: 0.8em;
+    cursor: pointer;
+    vertical-align: middle;
 }
 
 hr {
-  display: block;
-  unicode-bidi: isolate;
-  margin-block-start: 0.5em;
-  margin-block-end: 0.5em;
-  margin-inline-start: auto;
-  margin-inline-end: auto;
-  overflow: hidden;
-  border-style: solid;
-  border-width: 1px;
-  color: black;
+    display: block;
+    unicode-bidi: isolate;
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    color: black;
 }
 
 .bg-gold {
-  background-color: #f8d991 !important;
+    background-color: #f8d991 !important;
 }
 
 .text-gold {
-  color: #b01820 !important;
+    color: #b01820 !important;
 }
 
 .tooltip-lg {
-  font-size: 0.8rem !important;
-  font-style: normal;
+    font-size: 0.8rem !important;
+    font-style: normal;
 }
 
 .badge-gold {
-  color: #b01820;
-  background-color: #f8d991;
-}
-.badge-red {
-  color: #fff;
-  background-color: #b01820;
-  border-width: 2px;
-  border-color: #f8d991;
-  border-style: double;
+    color: #b01820;
+    background-color: #f8d991;
+    border-width: 1px;
+    padding: 10px;
+    border-color: #b01820;
+    border-style: double;
 }
 
+.badge-red {
+    color: #fff;
+    background-color: #b01820;
+    border-width: 2px;
+    border-color: #f8d991;
+    border-style: double;
+}
+
+.trait-badge-orange {
+    color: #fff;
+    background-color: #98513d;
+    border-width: 2px;
+    border-color: #f8d991;
+    border-style: double;
+}
+
+.trait-badge-blue {
+    color: #fff;
+    background-color: #576293;
+    border-width: 2px;
+    border-color: #f8d991;
+    border-style: double;
+}
+
+.trait-badge-green {
+    color: #fff;
+    background-color: #3a7b59;
+    border-width: 2px;
+    border-color: #f8d991;
+    border-style: double;
+}
+
+
 div.roller-tray {
-  box-shadow: 0 6px 12px rgba(0,0,0,.175);
-  position: fixed;
-  width: 50vw;
-  max-width: 260px;
-  height: 50vh;
-  max-height: 335px;
-  z-index: 1030;
-  border: 1px solid rgba(0,0,0,.15);
-  right: 1em;
-  bottom: 0;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  flex-direction: column;
-  background-color: white;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    position: fixed;
+    width: 50vw;
+    max-width: 260px;
+    height: 50vh;
+    max-height: 335px;
+    z-index: 1030;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 5px 5px 0 0;
+    right: 1em;
+    bottom: 0;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    background-color: white;
 }
 
 div.roller-tray-hidden {
-  box-shadow: 0 6px 12px rgba(0,0,0,.175);
-  position: fixed;
-  width: 10rem;
-  height: 2rem;
-  z-index: 1030;
-  border: 1px wave rgba(0,0,0,.15);
-  border-radius: 5px 5px 0 0;
-  right: 1em;
-  bottom: 0;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  flex-direction: column;
-  cursor: pointer;
-  text-align: center;
-  font-weight: bolder;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    position: fixed;
+    width: 10rem;
+    height: 2rem;
+    z-index: 1030;
+    border: 1px wave rgba(0, 0, 0, .15);
+    border-radius: 5px 5px 0 0;
+    right: 1em;
+    bottom: 0;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bolder;
 }
 
 .history {
-  max-height: 268px;
-  font-size: 0.9rem;
-  overflow-y: auto;
+    max-height: 268px;
+    font-size: 0.9rem;
+    overflow-y: auto;
 }
+
 .history ul {
-  margin-top: 5px;
-  margin-bottom: 20px;
-  line-height: 0.8rem;
-  font-size: 0.8rem;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    line-height: 0.8rem;
+    font-size: 0.8rem;
 }
+
 .history li {
-  margin: 0;
-  padding: 0 0 .4rem;
+    margin: 0;
+    padding: 0 0 .4rem;
 }
 
 .p-default {
-  cursor: default;
+    cursor: default;
 }
 
 .p-pointer {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 div.no-padding div {
-  padding: 0
+    padding: 0
 }
 
 pre {
-  font-family: Roboto,
-  "Helvetica Neue",
-  sans-serif;
+    font-family: Roboto,
+    "Helvetica Neue",
+    sans-serif;
 }
 
 .pre-spaced {
-  white-space: pre;
+    white-space: pre;
 }
 
 .border-square {
-  border-radius: 0;
+    border-radius: 0;
 }
 
 .border-rounded {
-  border-radius: 15px;
+    border-radius: 15px;
+}
+
+/*scrollbar styling*/
+@media (max-width: 768px) {
+    ::-webkit-scrollbar:vertical {
+        max-width: 5px;
+        width: 1rem;
+    }
+}
+
+@media (min-width: 769px) {
+    ::-webkit-scrollbar:horizontal {
+        display: none;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 1rem;
+    max-width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px #f8d991;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #b01820;
+    border-radius: 4px;
 }
