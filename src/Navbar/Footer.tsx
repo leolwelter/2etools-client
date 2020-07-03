@@ -79,7 +79,7 @@ export default function Footer() {
                                 used under Paizo's Community Use Policy. We are expressly prohibited from charging you
                                 to use or access this content. This website is not published, endorsed, or specifically
                                 approved by Paizo Publishing. For more information about Paizo's Community Use Policy,
-                                please visit paizo.com/communityuse. For more information about Paizo Publishing and
+                                please visit <a href='https://paizo.com/communityuse'>Paizo.com/communityuse</a>. For more information about Paizo Publishing and
                                 Paizo products, please visit paizo.com.
                             </p>
                             <h4>OPEN GAME LICENSE Version 1.0a</h4>
@@ -195,8 +195,13 @@ export default function Footer() {
                             <p>Lorc</p>
                             <p>Delapouite</p>
                             <p>You're awesome! Check their stuff out</p>
-                            <h4>Hey that's me!</h4>
-                            <p>2eTools, Leo Welter</p>
+
+                            <h4>Others</h4>
+                            <p>None of this content could have been made without the extremely useful resources put up by
+                            our Impartial Lord of Magic, the All-Seeing Eye himself, <a
+                                    href="https://2e.aonprd.com">Nethys</a>, or his devoted archivists led by Blake Davis.
+                            </p>
+                            <p>2eTools, Leo Welter <span className='text-muted font-italic'>hey that's me!</span></p>
 
                         </div>
                     </div>

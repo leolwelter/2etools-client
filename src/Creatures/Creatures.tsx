@@ -1,11 +1,12 @@
 import Navbar from "../Navbar/Navbar";
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {PropsWithoutRef, useEffect, useMemo, useRef, useState} from "react";
 import DataService from "../_services/data-service";
 import {Card, CardContent, LinearProgress, Tooltip} from "@material-ui/core";
 import {Creature} from "../_interfaces/creature";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import RollingTray from "../Roller/RollingTray";
+import { useLocation, useHistory } from "react-router-dom";
 
 export default function Creatures() {
     let [creatures, setCreatures] = useState<Creature[]>();
@@ -14,6 +15,8 @@ export default function Creatures() {
     let [ascending, setAscending] = useState<boolean>(true);
     let [sortBy, setSortBy] = useState<keyof Creature>('id');
     let roller = useRef<any>(null);
+    let location = useLocation();
+    let history = useHistory();
 
     useEffect(() => {
         document.title = 'Creatures - 2eTools';
@@ -26,6 +29,13 @@ export default function Creatures() {
                 setError('oops, something went wrong. Please reload or try again later.');
             });
     }, []);
+
+    useEffect(() => {
+        let nameString = location.hash.replace('#', '').replace(/%20/g, ' ');
+        let c = creatures?.find(val => nameString === val.name);
+        if (c) setSelected(c)
+        else setSelected(undefined)
+    }, [location, creatures]);
 
     const sorted = useMemo<Creature[] | undefined>(() => {
         switch (sortBy) {
@@ -48,8 +58,10 @@ export default function Creatures() {
     function toggleSelected(creature: Creature) {
         if (creature === selected) {
             setSelected(undefined);
+            history.push(`${location.pathname}`);
         } else {
             setSelected(creature);
+            history.push(`${location.pathname}#${creature.name}`);
         }
     }
 
@@ -88,6 +100,8 @@ export default function Creatures() {
         }
     }
 
+    // @ts-ignore
+    // @ts-ignore
     return (
         <div>
             <Navbar/>
@@ -169,34 +183,92 @@ export default function Creatures() {
                                 <div className='row'>
                                     <div className='col'>
                                         <b>Perception</b>
-                                        <span onClick={() => roller.current?.submitPrompt(`1d20+${selected?.perception}`, `${selected?.name} - Perception`)}
-                                            className='pl-1'>{selected.perception > 0 ? '+' : '-'}{selected.perception}
+                                        <span
+                                            onClick={() => roller.current?.submitPrompt(`1d20+${selected?.perception}`, `${selected?.name} - Perception`)}
+                                            className='pl-1 p-pointer text-gold'>{selected.perception >= 0 ? '+' : '-'}{selected.perception}
                                         </span>
                                         <span>; {selected.senses.join(', ')}</span>
                                     </div>
                                 </div>
-                                {selected.languages.length > 0 &&
+                                {selected.languages?.length > 0 &&
                                 <div className='row'>
                                     <div className='col'>
                                         <b>Languages</b>
                                         <span className='pl-1'>{selected.languages.join(', ')}</span>
-                                        {selected.otherCommunication.length > 1 &&
+                                        {selected.otherCommunication?.length > 1 &&
                                         <span>; {selected.otherCommunication.join(', ')}</span>}
                                     </div>
                                 </div>
                                 }
-                                {selected.skills.length > 0 &&
+                                {selected.skills?.length > 0 &&
                                 <div className='row'>
                                     <div className='col'>
                                         <b>Skills</b>
                                         {selected.skills.map((s, i) => {
                                             return <span key={i}><span>{i > 0 ? ', ' : ' '}{s.name} </span>
-                                                <span className='text-gold'>+{s.modifier}</span>
+                                                <span
+                                                    onClick={() => roller.current?.submitPrompt(`1d20+${s.modifier}`, `${selected?.name}-${s.name}`)}
+                                                    className='text-gold p-pointer'>+{s.modifier}</span>
                                                 <span className='text-muted'>{s.text && ` ${s.text}`}</span></span>
                                         })}
                                     </div>
                                 </div>
                                 }
+                                <div className='row'>
+                                    <div className='col'>
+                                        {selected.abilityMods?.map((ab, ind, arr) => {
+                                            let sign = ab >= 0 && '+';
+                                            let abName = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'][ind];
+                                            return (
+                                                <span key={ind}>
+                                                    <b>{abName}</b>
+                                                    <span className='pl-1 p-pointer text-gold'
+                                                          onClick={() => roller.current.submitPrompt(`1d20${sign || ''}${ab}`, `${selected?.name} - ${abName}`)}>
+                                                    {sign}{selected?.abilityMods[ind]}
+                                                    </span>
+                                                    {ind < arr.length - 1 && ', '}
+                                                </span>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                {selected.items?.length > 0 &&
+                                <div className='row'>
+                                    <div className='col'>
+                                        <b>Items</b>
+                                        {selected.items.map((item, ind) => {
+                                            return (<span key={ind}>
+                                                <span className='pl-1'>{ind > 0 && ', '}{item}</span>
+                                            </span>)
+                                        })
+                                        }
+                                    </div>
+                                </div>
+                                }
+                                {selected.interactionAbilities?.length > 0 &&
+                                <div className='row'>
+                                    <div className='col'>
+                                        {selected.interactionAbilities.map((ia, ind) => {
+                                            return (
+                                                <div key={ind}>
+                                                    <b className='pr-1'>{ia.name}</b>
+                                                    {ia.cost && <span>{ia.cost}</span>}
+                                                    {ia.traits?.length > 0 && <span className='font-italic'>({ia.traits.join(', ')})</span>}
+                                                    <span className='pl-1'>{ia.description}</span>
+                                                </div>)
+                                        })
+                                        }
+                                    </div>
+                                </div>
+                                }
+                                <hr/>
+                                <div className='row'>
+                                    <div className='col'>
+                                        <b className='pr-1'>AC</b>
+                                        <span>{selected.ac}</span>
+                                        {selected.acNotes?.length > 0 && <span>{selected.acNotes}</span>}
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>}

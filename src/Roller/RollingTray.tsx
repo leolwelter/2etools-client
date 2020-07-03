@@ -104,7 +104,8 @@ function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
 
     /** process the passed command, set global context and localstorage **/
     async function handleSubmit(event: any, pLine?: string, label?: string) {
-        console.log('hello');
+        console.log(`rolling: ${promptLine.trim() || pLine?.trim()}`);
+        setHidden(false);
         event && event.preventDefault();
         if (promptLine.trim() || pLine?.trim()) {
             let procLine = pLine ? processCommand(pLine) : processCommand(promptLine);
@@ -113,14 +114,14 @@ function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
                 globalContext.setContext({rollHistory: [procLine]})
                 await DataService.setRollHistory([procLine]);
             } else if (procLine.promptLine === CMD_RETURN.HELP) {
-                globalContext.setContext({rollHistory: [procLine, ...history]})
-                await DataService.setRollHistory([procLine, ...history]);
+                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
+                await DataService.setRollHistory([procLine, ...(history || [])]);
             } else if (procLine.promptLine === CMD_RETURN.INVALID) {
-                globalContext.setContext({rollHistory: [procLine, ...history]})
-                await DataService.setRollHistory([procLine, ...history]);
+                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
+                await DataService.setRollHistory([procLine, ...(history || [])]);
             } else if (procLine) {
-                globalContext.setContext({rollHistory: [procLine, ...history]})
-                await DataService.setRollHistory([procLine, ...history]);
+                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
+                await DataService.setRollHistory([procLine, ...(history || [])]);
             }
             setPromptLine('');
         }
@@ -174,7 +175,7 @@ function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
                                 <div className='col'>
                                     <div className='history'>
                                         <ul className='list-group list-group-flush'>
-                                            {history.map((line, ind) => {
+                                            {history && history.map((line, ind) => {
                                                 return <li key={ind}
                                                            onClick={() => {
                                                                setPromptLine(line.promptLine);

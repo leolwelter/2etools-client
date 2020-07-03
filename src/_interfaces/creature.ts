@@ -30,6 +30,9 @@ export class Creature {
     languages: string[] = [];
     otherCommunication: string[] = [];
     skills: Header[] = [];
+    abilityMods: number[] = [];
+    items: string[] = [];
+    interactionAbilities: Action[] = [];
     source: Source = {book: 'N/A', homebrew: true, page: 69};
     family: string = '';
     ac: number = 0;
