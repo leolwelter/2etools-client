@@ -1,12 +1,12 @@
 import Navbar from "../Navbar/Navbar";
-import React, {PropsWithoutRef, useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import DataService from "../_services/data-service";
 import {Card, CardContent, LinearProgress, Tooltip} from "@material-ui/core";
 import {Creature} from "../_interfaces/creature";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import RollingTray from "../Roller/RollingTray";
-import { useLocation, useHistory } from "react-router-dom";
+import {useLocation, useHistory} from "react-router-dom";
 
 export default function Creatures() {
     let [creatures, setCreatures] = useState<Creature[]>();
@@ -100,8 +100,6 @@ export default function Creatures() {
         }
     }
 
-    // @ts-ignore
-    // @ts-ignore
     return (
         <div>
             <Navbar/>
@@ -109,7 +107,7 @@ export default function Creatures() {
                 {!error &&
                 <div className='row'>
                     {/*creatures table*/}
-                    <div className='col-12 col-md-6'>
+                    <div className='col-12 col-md-4'>
                         <h4>Creatures: Click to display details</h4>
                         <p className='text-muted'>hover over abbreviations to show more/expand tooltips</p>
                         <div className="table-responsive table-scrollable">
@@ -253,7 +251,12 @@ export default function Creatures() {
                                                 <div key={ind}>
                                                     <b className='pr-1'>{ia.name}</b>
                                                     {ia.cost && <span>{ia.cost}</span>}
-                                                    {ia.traits?.length > 0 && <span className='font-italic'>({ia.traits.join(', ')})</span>}
+                                                    {ia.traits?.length > 0 &&
+                                                    <span className='font-italic'>({ia.traits.join(', ')})</span>}
+                                                    {ia.trigger && <span className='font-italic'><b
+                                                        className='pr-1'>Trigger</b>{ia.trigger}</span>}
+                                                    {ia.requirements && <span className='font-italic'><b
+                                                        className='pr-1'>Requirements</b>{ia.requirements}</span>}
                                                     <span className='pl-1'>{ia.description}</span>
                                                 </div>)
                                         })
@@ -266,7 +269,47 @@ export default function Creatures() {
                                     <div className='col'>
                                         <b className='pr-1'>AC</b>
                                         <span>{selected.ac}</span>
-                                        {selected.acNotes?.length > 0 && <span>{selected.acNotes}</span>}
+                                        {selected.acNotes?.length > 0 && <span className='pl-1'>{selected.acNotes}</span>}
+                                        <b className='px-1'>Fort</b>
+                                        <span className='p-pointer text-gold'
+                                              onClick={() => roller.current.submitPrompt(`1d20+${selected?.fortitude}`, `${selected?.name} - fortitude`)}>
+                                            {selected.fortitude >= 0 && '+'}{selected.fortitude}</span>
+                                        {selected.fortitudeNotes?.length > 0 && <span>{selected.fortitudeNotes}</span>}
+                                        <b className='px-1'>Ref</b>
+                                        <span className='p-pointer text-gold'
+                                              onClick={() => roller.current.submitPrompt(`1d20+${selected?.reflex}`, `${selected?.name} - reflex`)}>
+                                            {selected.reflex >= 0 && '+'}{selected.reflex}</span>
+                                        {selected.reflexNotes?.length > 0 && <span>{selected.reflexNotes}</span>}
+                                        <b className='px-1'>Will</b>
+                                        <span className='p-pointer text-gold'
+                                              onClick={() => roller.current.submitPrompt(`1d20+${selected?.will}`, `${selected?.name} - will`)}>
+                                            {selected.will >= 0 && '+'}{selected.will}</span>
+                                        {selected.willNotes?.length > 0 && <span>{selected.willNotes}</span>}
+                                        {selected.saveNotes?.length > 0 && <span className='pl-1 text-muted'>({selected.saveNotes.trim()})</span>}
+                                    </div>
+                                </div>
+
+                                <div className='row'>
+                                    <div className='col'>
+                                        <b className='pr-1'>HP</b>
+                                        <span>{selected.hitPoints}</span>
+                                        {selected.hitPointsNotes && <span className='pl-1'>{selected.hitPointsNotes}</span>}
+                                        {selected.hardness > 0 && <span>;
+                                            <b className='pr-1'> Hardness</b>
+                                            <span>{selected.hardness}</span>
+                                        </span>}
+                                        {selected.immunities?.length > 0 && <span>;
+                                            <b className='pr-1'> Immunities</b>
+                                            <span>{selected.immunities.join(', ')}</span>
+                                        </span>}
+                                        {selected.resistances?.length > 0 && <span>;
+                                            <b className='pr-1'> Resistances</b>
+                                            <span>{selected.resistances.join(', ')}</span>
+                                        </span>}
+                                        {selected.weaknesses?.length > 0 && <span>;
+                                            <b className='pr-1'> Weaknesses</b>
+                                            <span>{selected.weaknesses.join(', ')}</span>
+                                        </span>}
                                     </div>
                                 </div>
                             </CardContent>

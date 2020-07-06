@@ -7,9 +7,11 @@ export const CreatureSizes = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Garga
 export const Rarities = ['common', 'uncommon', 'rare', 'unique'];
 
 export interface Action {
-    cost: string;
     name: string;
+    cost: string;
     traits: Trait[];
+    trigger: string;
+    requirements: string;
     description: string[];
 }
 
