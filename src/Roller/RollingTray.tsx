@@ -44,7 +44,7 @@ function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
         submitPrompt: (pl: string, label: string) => handleSubmit(null, pl, label)
     }));
 
-    /** set history on component mount **/
+    /** set history every time global context changes **/
     useEffect(() => {
         setHistory(globalContext.context.rollHistory);
     }, [globalContext.context.rollHistory])
@@ -111,17 +111,13 @@ function RollingTray(props: PropsWithoutRef<any>, ref: Ref<any>) {
             let procLine = pLine ? processCommand(pLine) : processCommand(promptLine);
             if (label) procLine.label = label;
             if (procLine.promptLine === CMD_RETURN.CLEAR) {
-                globalContext.setContext({rollHistory: [procLine]})
-                await DataService.setRollHistory([procLine]);
+                await DataService.setRollHistory([procLine], globalContext.context, globalContext.setContext);
             } else if (procLine.promptLine === CMD_RETURN.HELP) {
-                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
-                await DataService.setRollHistory([procLine, ...(history || [])]);
+                await DataService.setRollHistory([procLine, ...(history || [])], globalContext.context, globalContext.setContext);
             } else if (procLine.promptLine === CMD_RETURN.INVALID) {
-                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
-                await DataService.setRollHistory([procLine, ...(history || [])]);
+                await DataService.setRollHistory([procLine, ...(history || [])], globalContext.context, globalContext.setContext);
             } else if (procLine) {
-                globalContext.setContext({rollHistory: [procLine, ...(history || [])]})
-                await DataService.setRollHistory([procLine, ...(history || [])]);
+                await DataService.setRollHistory([procLine, ...(history || [])], globalContext.context, globalContext.setContext);
             }
             setPromptLine('');
         }

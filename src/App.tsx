@@ -13,16 +13,21 @@ import Ancestries from "./Ancestries/Ancestries";
 import Creatures from "./Creatures/Creatures";
 import Traits from "./Traits/Traits";
 import DataService from "./_services/data-service";
+import {BestiaryLine} from "./_interfaces/system";
 
 export interface GlobalContextValues {
     rollHistory: RollCommand[];
+    pinnedMonsters: BestiaryLine[];
     isRollingTrayOpen: boolean;
 }
 
 /** values have to be set initially **/
-// TODO use proper types
 export const AppContext: Context<any> = React.createContext({
-    context: { rollHistory: [] },
+    context: {
+        rollHistory: [],
+        pinnedMonsters: [],
+        isRollingTrayOpen: false
+    },
     setContext: () => {}
 });
 
@@ -31,13 +36,17 @@ export default function App() {
     let [context, setContext] = useState<GlobalContextValues>(
         {
             rollHistory: [],
+            pinnedMonsters: [],
             isRollingTrayOpen: false
         });
     useEffect(() => {
-        DataService.getRollHistory().then(h => setContext({
-            rollHistory: h,
-            isRollingTrayOpen: false
-        }));
+        Promise.all([DataService.getRollHistory(),
+            DataService.getPinnedMonsters()]).then(([rh, pm])=> {
+            setContext({
+                rollHistory: rh || [],
+                pinnedMonsters: pm || [],
+                isRollingTrayOpen: false
+        })});
     }, [])
 
     return (

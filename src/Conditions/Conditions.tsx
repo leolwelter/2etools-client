@@ -10,8 +10,12 @@ interface ConditionGroup {
 
 export default function Conditions() {
     let [selected, setSelected] = useState<Condition>();
+    let [condList, setCondList] = useState<Condition[]>([]);
 
-    let clist = conditions.sort((a, b) => a.group > b.group ? 1 : -1);
+    let clist = condList.sort((a, b) => {
+        if (a.group === b.group) return a.name < b.name ? -1 : 1
+        else return a.group < b.group ? -1 : 1;
+    });
     let groups: ConditionGroup = {};
     clist.forEach(cond => {
         if (groups[cond.group]) groups[cond.group].push(cond);
@@ -20,6 +24,7 @@ export default function Conditions() {
 
     useEffect(() => {
         document.title = 'Conditions - 2eTools';
+        setCondList(conditions);
     }, []);
 
     function toggleCondition(cond: Condition) {
@@ -45,8 +50,8 @@ export default function Conditions() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {conditions.map(cond => {
-                                    return <tr key={cond.name} onClick={() => toggleCondition(cond)}
+                                {clist.map((cond, ind) => {
+                                    return <tr key={ind} onClick={() => toggleCondition(cond)}
                                                className={`${(cond === selected) ? 'bg-gold text-gold text-bold font-weight-bold' : ''}`}>
                                         <td className='align-middle'>{cond.name}</td>
                                         <td className='align-middle'>{cond.overrides.join(', ')}</td>

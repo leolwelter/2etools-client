@@ -1,5 +1,5 @@
 import Navbar from "../Navbar/Navbar";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Spell} from "../_interfaces/spell";
 import DataService from "../_services/data-service";
 import {Card, CardContent, LinearProgress, Tooltip} from "@material-ui/core";
@@ -9,17 +9,24 @@ import twoActions from "../_assets/TwoActions.png";
 import threeActions from "../_assets/ThreeActions_I.png";
 import reaction from "../_assets/Reaction.png";
 import RollingTray from "../Roller/RollingTray";
+import { useLocation, useHistory } from "react-router-dom";
+import {dynamicSort} from "../lw-util";
+import {ArrowDownward, ArrowUpward} from "@material-ui/icons";
 
 export default function Spells() {
     let [spells, setSpells] = useState<Spell[]>();
-    let [selectedSpell, setSelectedSpell] = useState<Spell>();
+    let [selected, setSelected] = useState<Spell>();
     let [error, setError] = useState<string>();
+    let [sortBy, setSortBy] = useState<keyof Spell>('name');
+    let [ascending, setAscending] = useState<boolean>(true);
+    let location = useLocation();
+    let history = useHistory();
 
     useEffect(() => {
         document.title = 'Spells - 2eTools';
         DataService.getSpells()
             .then(succ => {
-                setSpells(succ.sort((a, b) => a.name >= b.name ? 1 : -1))
+                setSpells(dynamicSort<Spell>(succ, 'level', true))
             })
             .catch(err => {
                 console.error(err);
@@ -27,14 +34,49 @@ export default function Spells() {
             });
     }, []);
 
+    useEffect(() => {
+        let nameString = location.hash.replace('#', '').replace(/%20/g, ' ');
+        let c = spells?.find(val => nameString === val.name);
+        if (c) setSelected(c)
+        else setSelected(undefined)
+    }, [location, spells]);
+
     function toggleSpell(spell: Spell) {
-        if (spell === selectedSpell) {
-            setSelectedSpell(undefined);
+        if (spell === selected) {
+            setSelected(undefined);
+            history.push(`${location.pathname}`);
         } else {
-            setSelectedSpell(spell);
+            console.log(spell);
+            setSelected(spell);
+            history.push(`${location.pathname}#${spell.name}`);
         }
     }
 
+    const sorted = useMemo<Spell[] | undefined>(() => {
+        switch (sortBy) {
+            case "cast":
+                return dynamicSort<Spell>(spells, sortBy, ascending, Spell.compareByCast, 'name');
+            case "source":
+                return dynamicSort<Spell>(spells, sortBy, ascending, Spell.compareBySource, 'name');
+            default:
+                return dynamicSort<Spell>(spells, sortBy, ascending, undefined, 'name');
+        }
+    }, [spells, sortBy, ascending])
+
+    useEffect(() => {
+        setSpells(sorted);
+    }, [sorted])
+
+    function toggleSortBy(field: keyof Spell) {
+        if (spells) {
+            if (sortBy === field) {
+                setAscending(s => !s);
+            } else {
+                setSortBy(field);
+                setAscending(true);
+            }
+        }
+    }    
     return (
         <div>
             <Navbar/>
@@ -50,19 +92,32 @@ export default function Spells() {
                                 <table className="table table-bordered table-hover table-striped">
                                     <thead>
                                     <tr className='text-capitalize text-justify'>
-                                        <th>name</th>
-                                        <th>level</th>
-                                        <th>cast</th>
-                                        <th>type</th>
-                                        <th title='Traditions'>trad.</th>
-                                        <th>source</th>
-                                        <th title='Sustained'>S.</th>
+                                        <th onClick={() => toggleSortBy('name')}>name
+                                            {sortBy === 'name' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
+                                        <th onClick={() => toggleSortBy('level')}>level
+                                            {sortBy === 'level' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
+                                        <th onClick={() => toggleSortBy('cast')}>cast
+                                            {sortBy === 'cast' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
+                                        <th onClick={() => toggleSortBy('spellType')}>type
+                                            {sortBy === 'spellType' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
+                                        <th>trad.
+                                        </th>
+                                        <th onClick={() => toggleSortBy('source')}>source
+                                            {sortBy === 'source' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
+                                        <th onClick={() => toggleSortBy('isSustained')} title='Sustained'>S.
+                                            {sortBy === 'isSustained' && (ascending ? <ArrowUpward fontSize='small'/> : <ArrowDownward fontSize='small'/>)}
+                                        </th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {spells.map(spell => {
                                         return <tr key={spell.id} onClick={() => toggleSpell(spell)}
-                                                   className={`${(spell === selectedSpell) ? 'bg-gold text-gold text-bold font-weight-bold' : ''}`}>
+                                                   className={`${(spell === selected) ? 'bg-gold text-gold text-bold font-weight-bold' : ''}`}>
                                             <td className='align-middle'>{spell.name}</td>
                                             <td className='align-middle'>{spell.level}</td>
                                             <td className='align-middle'>
@@ -102,21 +157,21 @@ export default function Spells() {
                     </div>
 
                     {/*selected spell in card view*/}
-                    {selectedSpell &&
+                    {selected &&
                     <div className='col'>
                         <Card>
                             <CardContent>
                                 <div className='row'>
                                     <div className='col d-flex font-weight-bolder'>
-                                        <div>{selectedSpell.name}</div>
-                                        <div className='ml-auto'>{selectedSpell.spellType} {selectedSpell.level}</div>
+                                        <div>{selected.name}</div>
+                                        <div className='ml-auto'>{selected.spellType} {selected.level}</div>
                                     </div>
                                 </div>
                                 <hr/>
                                 <div className='row'>
                                     <div className='col'>
-                                        {selectedSpell.traits.map(tr => {
-                                            return <Tooltip key={`${selectedSpell?.id}.${tr.id}`} title={tr.description}
+                                        {selected.traits.map(tr => {
+                                            return <Tooltip key={`${selected?.id}.${tr.id}`} title={tr.description}
                                                             classes={{tooltip: 'tooltip-lg'}}>
                                                 <span className="badge badge-red">{tr.name}</span>
                                             </Tooltip>
@@ -127,15 +182,15 @@ export default function Spells() {
                                     <div className='col'>
                                         <span className='font-weight-bold'>Source </span>
                                         <span
-                                            className='p-1'>{selectedSpell.source.book} pg. {selectedSpell.source.page}</span>
+                                            className='p-1'>{selected.source.book} pg. {selected.source.page}</span>
                                     </div>
                                 </div>
                                 <div className='row row-cols-1'>
                                     <div className='col'>
-                                        {selectedSpell.traditions?.length > 0 && <div className="d-flex">
+                                        {selected.traditions?.length > 0 && <div className="d-flex">
                                             <span className="font-weight-bold">Tradition </span>
                                             <div>
-                                                {selectedSpell.traditions.map((t, ind, arr) => {
+                                                {selected.traditions.map((t, ind, arr) => {
                                                     return <span key={t}
                                                                  className="p-1">{t + (ind === arr.length - 1 ? '' : ',')}</span>
                                                 })}
@@ -148,76 +203,76 @@ export default function Spells() {
                                         <span className="font-weight-bold">Cast </span>
                                         <span className="pl-1">
                                             {(() => {
-                                                if (selectedSpell.trigger) {
+                                                if (selected.trigger) {
                                                     return <img className='img pr-1' alt='' src={reaction}
                                                                 height='16px'/>
-                                                } else if (selectedSpell.actions.length) {
-                                                    return selectedSpell.actions.map(act => {
+                                                } else if (selected.actions.length) {
+                                                    return selected.actions.map(act => {
                                                         let isrc = act === 0 ? freeAction : act === 1 ? oneAction : act === 2 ? twoActions : threeActions;
-                                                        return <img key={`${selectedSpell?.id}.${act}`}
+                                                        return <img key={`${selected?.id}.${act}`}
                                                                     className='img pr-1' alt='' src={isrc}
                                                                     height='16px'/>
                                                     })
                                                 } else {
-                                                    return <span>{selectedSpell.cast}</span>
+                                                    return <span>{selected.cast}</span>
                                                 }
                                             })()}
                                         </span>
                                         <span>
-                                        {selectedSpell.components.length ? '(' + selectedSpell.components.join(', ') + ')' : null}
+                                        {selected.components.length ? '(' + selected.components.join(', ') + ')' : null}
                                         </span>
-                                        {selectedSpell.cost &&
+                                        {selected.cost &&
                                         <div>
                                             <span className="pl-1 font-weight-bold">cost </span>
-                                            <span>{selectedSpell.cost}</span>
+                                            <span>{selected.cost}</span>
                                         </div>
                                         }
-                                        {selectedSpell.requirements &&
+                                        {selected.requirements &&
                                         <div>
                                             <span className="pl-1 font-weight-bold">requirements </span>
-                                            <span>{selectedSpell.requirements}</span>
+                                            <span>{selected.requirements}</span>
                                         </div>
                                         }
 
-                                        {selectedSpell.trigger &&
+                                        {selected.trigger &&
                                         <div>
                                             <span className="pl-1 font-weight-bold">trigger </span>
-                                            <span>{selectedSpell.trigger}</span>
+                                            <span>{selected.trigger}</span>
                                         </div>
                                         }
                                     </div>
 
-                                    {(selectedSpell.range || selectedSpell.area || selectedSpell.targets) &&
+                                    {(selected.range || selected.area || selected.targets) &&
                                     <div className="col d-flex">
-                                        {selectedSpell.range &&
+                                        {selected.range &&
                                         <div className="pr-1">
                                             <span className="font-weight-bold">Range </span>
-                                            <span>{selectedSpell.range}</span>
+                                            <span>{selected.range}</span>
                                         </div>}
-                                        {selectedSpell.area &&
+                                        {selected.area &&
                                         <div className="pr-1">
                                             <span className="font-weight-bold">Area </span>
-                                            <span>{selectedSpell.area}</span>
+                                            <span>{selected.area}</span>
                                         </div>}
-                                        {selectedSpell.targets &&
+                                        {selected.targets &&
                                         <div>
                                             <span className="font-weight-bold">Targets </span>
-                                            <span>{selectedSpell.targets}</span>
+                                            <span>{selected.targets}</span>
                                         </div>}
                                     </div>
                                     }
 
-                                    {(selectedSpell.savingThrow || selectedSpell.duration) &&
+                                    {(selected.savingThrow || selected.duration) &&
                                     <div className="col d-flex">
-                                        {selectedSpell.savingThrow &&
+                                        {selected.savingThrow &&
                                         <div className="pr-1">
                                             <span className="font-weight-bold">Saving Throw  </span>
-                                            <span>{selectedSpell.savingThrow}</span>
+                                            <span>{selected.savingThrow}</span>
                                         </div>}
-                                        {selectedSpell.duration &&
+                                        {selected.duration &&
                                         <div>
                                             <span className="font-weight-bold">Duration </span>
-                                            <span>{selectedSpell.duration}</span>
+                                            <span>{selected.duration}</span>
                                         </div>}
                                     </div>
                                     }
@@ -225,37 +280,39 @@ export default function Spells() {
                                 <hr/>
                                 <div className='row row-cols-1'>
                                     <div className='col'>
-                                        {selectedSpell.description.split('\n').map((p, ind) => {
+                                        {selected.description.split('\n').map((p, ind) => {
                                             return <p key={ind}>{p}</p>
                                         })}
-                                        {selectedSpell.criticalSuccess &&
+                                        {selected.criticalSuccess &&
                                         <div>
                                             <span className="font-weight-bold">Critical Success </span>
-                                            <span>{selectedSpell.criticalSuccess}</span>
+                                            <span>{selected.criticalSuccess}</span>
                                         </div>
                                         }
-                                        {selectedSpell.success && <div>
+                                        {selected.success && <div>
                                             <span className="font-weight-bold">Success </span>
-                                            <span>{selectedSpell.success}</span>
+                                            <span>{selected.success}</span>
                                         </div>}
-                                        {selectedSpell.failure && <div>
+                                        {selected.failure && <div>
                                             <span className="font-weight-bold">Failure </span>
-                                            <span>{selectedSpell.failure}</span>
+                                            <span>{selected.failure}</span>
                                         </div>}
-                                        {selectedSpell.criticalFailure && <div>
+                                        {selected.criticalFailure && <div>
                                             <span className="font-weight-bold">Critical Failure </span>
-                                            <span>{selectedSpell.criticalFailure}</span>
+                                            <span>{selected.criticalFailure}</span>
                                         </div>}
                                     </div>
                                 </div>
-                                {selectedSpell.heightened?.length > 0 &&
+                                {selected.heightened?.length > 0 &&
                                 <div className='row'>
                                     <div className='col'>
                                         <hr/>
-                                        {selectedSpell.heightened.map(h => {
+                                        {selected.heightened.map(h => {
                                             return <div key={h.level}>
                                                 <span className="font-weight-bold">Heightened ({h.level})</span>
-                                                <span className="pl-1">{h.description}</span>
+                                                <span className="pl-1">{h.description.split('\n').map((p, ind) => {
+                                                    return <p key={ind}>{p}</p>
+                                                })}</span>
                                             </div>
                                         })}
                                     </div>

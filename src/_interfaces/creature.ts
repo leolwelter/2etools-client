@@ -13,6 +13,7 @@ export interface Action {
     trigger: string;
     requirements: string;
     description: string[];
+    damage: string;
 }
 
 export interface Header {

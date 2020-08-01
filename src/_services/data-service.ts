@@ -5,6 +5,8 @@ import {Ancestry} from "../_interfaces/ancestry";
 import {Creature} from "../_interfaces/creature";
 import {Trait} from "../_interfaces/trait";
 import {RollCommand} from "../Roller/RollingTray";
+import {BestiaryLine} from "../_interfaces/system";
+import {GlobalContextValues} from "../App";
 
 const axios = require('axios').default;
 
@@ -59,6 +61,7 @@ export default class DataService {
             return localForage.getItem<Creature[]>('creatures');
         }
     }
+
     static async getTraits(): Promise<Trait[]> {
         try {
             const response = await axios.get(`${config.apiUrl}/traits`);
@@ -80,13 +83,26 @@ export default class DataService {
         return localForage.getItem<RollCommand[]>('rollHistory');
     }
 
-    static async setRollHistory(h: RollCommand[]) {
+    static async setRollHistory(h: RollCommand[], context: GlobalContextValues, setContext: (c: GlobalContextValues) => any) {
+        setContext({
+            pinnedMonsters: context.pinnedMonsters,
+            rollHistory: h,
+            isRollingTrayOpen: context.isRollingTrayOpen
+        })
         return localForage.setItem<RollCommand[]>('rollHistory', h);
     }
 
-    static async addRollToHistory(r: RollCommand) {
-        let h = await this.getRollHistory();
-        if (h) await this.setRollHistory([r, ...h]);
-        else await this.setRollHistory([r]);
+    static async getPinnedMonsters() {
+        return localForage.getItem<BestiaryLine[]>('pinnedMonsters');
     }
+
+    static async setPinnedMonsters(h: BestiaryLine[], context: GlobalContextValues, setContext: (c: GlobalContextValues) => any) {
+        setContext({
+            pinnedMonsters: h,
+            rollHistory: context.rollHistory,
+            isRollingTrayOpen: context.isRollingTrayOpen
+        });
+        return localForage.setItem<BestiaryLine[]>('pinnedMonsters', h);
+    }
+
 }

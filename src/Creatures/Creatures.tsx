@@ -1,15 +1,26 @@
 import Navbar from "../Navbar/Navbar";
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import DataService from "../_services/data-service";
 import {Card, CardContent, LinearProgress, Tooltip} from "@material-ui/core";
 import {Creature} from "../_interfaces/creature";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
+import AddCircleOutline from "@material-ui/icons/AddCircleOutline";
 import RollingTray from "../Roller/RollingTray";
 import {useLocation, useHistory} from "react-router-dom";
+import {dynamicSort} from "../lw-util";
+import singleAction from '../_assets/OneAction.png';
+import twoActions from '../_assets/TwoActions.png';
+import threeActions from '../_assets/ThreeActions_I.png';
+import reaction from '../_assets/Reaction.png';
+import freeAction from '../_assets/FreeAction.png';
+import {BestiaryLine} from "../_interfaces/system";
+import {RemoveCircleOutline} from "@material-ui/icons";
+import {AppContext} from "../App";
 
 export default function Creatures() {
     let [creatures, setCreatures] = useState<Creature[]>();
+    let [pinned, setPinned] = useState<BestiaryLine[]>([]);
     let [selected, setSelected] = useState<Creature>();
     let [error, setError] = useState<string>();
     let [ascending, setAscending] = useState<boolean>(true);
@@ -17,6 +28,7 @@ export default function Creatures() {
     let roller = useRef<any>(null);
     let location = useLocation();
     let history = useHistory();
+    let globalContext = useContext<any>(AppContext);
 
     useEffect(() => {
         document.title = 'Creatures - 2eTools';
@@ -29,6 +41,10 @@ export default function Creatures() {
                 setError('oops, something went wrong. Please reload or try again later.');
             });
     }, []);
+
+    useEffect(() => {
+        setPinned(globalContext.context.pinnedMonsters);
+    }, [globalContext.context.pinnedMonsters]);
 
     useEffect(() => {
         let nameString = location.hash.replace('#', '').replace(/%20/g, ' ');
@@ -48,7 +64,6 @@ export default function Creatures() {
             default:
                 return dynamicSort<Creature>(creatures, sortBy, ascending, undefined, 'name');
         }
-
     }, [creatures, sortBy, ascending])
 
     useEffect(() => {
@@ -65,30 +80,6 @@ export default function Creatures() {
         }
     }
 
-    // TODO get secondary sort to work properly with ascending logic
-    function dynamicSort<T>(array: T[] | undefined, field: keyof T, asc: boolean, compareFunc?: (((a: T, b: T) => number) | undefined), secondaryField?: keyof T): undefined | T[] {
-        if (array === undefined) {
-            return undefined;
-        } else if (array?.length < 1) {
-            return undefined;
-        }
-
-        // secondary field sorts are always ascending
-        if (secondaryField)
-            array = array.sort((a, b) => a[secondaryField] < b[secondaryField] ? -1 : 1);
-
-        let cFunc: any;
-        if (!compareFunc) {
-            cFunc = (a: T, b: T) => {
-                return a[field] < b[field] ? -1 : 1;
-            };
-        } else {
-            cFunc = compareFunc;
-        }
-        return asc ? array.sort(cFunc) : array.sort(cFunc).reverse();
-    }
-
-
     function toggleSortBy(field: keyof Creature) {
         if (creatures) {
             if (sortBy === field) {
@@ -97,6 +88,36 @@ export default function Creatures() {
                 setSortBy(field);
                 setAscending(true);
             }
+        }
+    }
+
+    async function addToPinned(c: Creature | undefined) {
+        if (!c) return;
+        console.log('fu')
+        let found = pinned.find(v => v.creature.name === c.name)
+        let temp: BestiaryLine[] | undefined;
+        if (!found) {
+            temp = [...pinned, {creature: c, qty: 1}];
+        } else {
+            temp = pinned.map((line, ind, arr) => {
+                if (c.name === line.creature.name) line.qty = line.qty + 1;
+                return line;
+            });
+        }
+        temp = dynamicSort<BestiaryLine>(temp, 'creature', true, (a, b) => a.creature.name < b.creature.name ? -1 : 1, 'qty')
+        if (temp) {
+            await DataService.setPinnedMonsters(temp, globalContext.context, globalContext.setContext);
+        }
+    }
+
+    async function removePinned(c: Creature | undefined) {
+        if (!c) return;
+        let temp: BestiaryLine[] = pinned.map((line, ind, arr) => {
+            if (c.name === line.creature.name) line.qty = line.qty - 1;
+            return line;
+        }).filter(v => v.qty > 0);
+        if (temp) {
+            await DataService.setPinnedMonsters(temp, globalContext.context, globalContext.setContext);
         }
     }
 
@@ -152,14 +173,60 @@ export default function Creatures() {
                         </div>
                     </div>
 
-                    {/*selected creature in card view*/}
-                    {selected &&
+
                     <div className='col'>
-                        <Card className='creature-card'>
+                        {/*pinned list */}
+                        {pinned?.length > 0 && <div>
+                            <div className='row mt-3'>
+                                <div className='col'>
+                                    <p className='text-muted'>pinned monsters will appear below</p>
+                                </div>
+                            </div>
+                            <div className='row'>
+                                <div className='col col-md-6 col-xl-4'>
+                                    <div className='table-scrollable table-responsive table-scrollable-short'>
+                                        <table className='table table-bordered table-hover'>
+                                            <thead>
+                                            <tr className='text-capitalize'>
+                                                <th>name</th>
+                                                <th>family</th>
+                                                <th>level</th>
+                                                <th>qty</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {pinned?.map((c, ind) => {
+                                                return <tr key={ind} onClick={() => toggleSelected(c.creature)}
+                                                           className={`${c.creature.name === selected?.name ? 'bg-gold' : ''}`}>
+                                                    <td>{c.creature.name}</td>
+                                                    <td>{c.creature.family}</td>
+                                                    <td>{c.creature.level}</td>
+                                                    <td>{c.qty}</td>
+                                                </tr>
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        }
+
+                        {/*selected detail*/}
+                        {selected && <Card classes={{root: 'mt-3'}}>
                             <CardContent>
                                 <div className='row'>
                                     <div className='col d-flex font-weight-bolder'>
-                                        <div>{selected.name}</div>
+                                        <div>{selected.name}
+                                            <Tooltip title='add to pinned' placement='top'>
+                                                <AddCircleOutline className='p-pointer pl-2'
+                                                                  onClick={() => addToPinned(selected)}/>
+                                            </Tooltip>
+                                            <Tooltip title='remove from pinned' placement='top'>
+                                                <RemoveCircleOutline className='p-pointer pl-2'
+                                                                     onClick={() => removePinned(selected)}/>
+                                            </Tooltip>
+                                        </div>
                                         <div className='ml-auto'>Creature {selected.level}</div>
                                     </div>
                                 </div>
@@ -250,14 +317,36 @@ export default function Creatures() {
                                             return (
                                                 <div key={ind}>
                                                     <b className='pr-1'>{ia.name}</b>
-                                                    {ia.cost && <span>{ia.cost}</span>}
+                                                    {ia.cost && (() => {
+                                                        let isrc = '-';
+                                                        switch (ia.cost) {
+                                                            case 'Single Action':
+                                                                isrc = singleAction;
+                                                                break;
+                                                            case 'Two Actions':
+                                                                isrc = twoActions;
+                                                                break;
+                                                            case 'Three Actions':
+                                                                isrc = threeActions;
+                                                                break;
+                                                            case 'Free Action':
+                                                                isrc = freeAction;
+                                                                break;
+                                                            case 'Reaction':
+                                                                isrc = reaction;
+                                                                break;
+                                                        }
+                                                        return <img className='img' height='16px' src={isrc}
+                                                                    alt={ia.cost}/>
+                                                    })()}
                                                     {ia.traits?.length > 0 &&
                                                     <span className='font-italic'>({ia.traits.join(', ')})</span>}
                                                     {ia.trigger && <span className='font-italic'><b
                                                         className='pr-1'>Trigger</b>{ia.trigger}</span>}
                                                     {ia.requirements && <span className='font-italic'><b
                                                         className='pr-1'>Requirements</b>{ia.requirements}</span>}
-                                                    <span className='pl-1'>{ia.description}</span>
+                                                    <span className='pl-1'>{ia.trigger &&
+                                                    <b className='pr-1'>Effect</b>}{ia.description}</span>
                                                 </div>)
                                         })
                                         }
@@ -269,7 +358,8 @@ export default function Creatures() {
                                     <div className='col'>
                                         <b className='pr-1'>AC</b>
                                         <span>{selected.ac}</span>
-                                        {selected.acNotes?.length > 0 && <span className='pl-1'>{selected.acNotes}</span>}
+                                        {selected.acNotes?.length > 0 &&
+                                        <span className='pl-1'>{selected.acNotes}</span>}
                                         <b className='px-1'>Fort</b>
                                         <span className='p-pointer text-gold'
                                               onClick={() => roller.current.submitPrompt(`1d20+${selected?.fortitude}`, `${selected?.name} - fortitude`)}>
@@ -285,7 +375,8 @@ export default function Creatures() {
                                               onClick={() => roller.current.submitPrompt(`1d20+${selected?.will}`, `${selected?.name} - will`)}>
                                             {selected.will >= 0 && '+'}{selected.will}</span>
                                         {selected.willNotes?.length > 0 && <span>{selected.willNotes}</span>}
-                                        {selected.saveNotes?.length > 0 && <span className='pl-1 text-muted'>({selected.saveNotes.trim()})</span>}
+                                        {selected.saveNotes?.length > 0 &&
+                                        <span className='pl-1 text-muted'>({selected.saveNotes.trim()})</span>}
                                     </div>
                                 </div>
 
@@ -293,7 +384,8 @@ export default function Creatures() {
                                     <div className='col'>
                                         <b className='pr-1'>HP</b>
                                         <span>{selected.hitPoints}</span>
-                                        {selected.hitPointsNotes && <span className='pl-1'>{selected.hitPointsNotes}</span>}
+                                        {selected.hitPointsNotes &&
+                                        <span className='pl-1'>{selected.hitPointsNotes}</span>}
                                         {selected.hardness > 0 && <span>;
                                             <b className='pr-1'> Hardness</b>
                                             <span>{selected.hardness}</span>
@@ -312,9 +404,107 @@ export default function Creatures() {
                                         </span>}
                                     </div>
                                 </div>
+
+                                {selected.automaticAbilities?.length > 0 &&
+                                <div className='row'>
+                                    <div className='col'>
+                                        {selected.automaticAbilities.map((ia, ind) => {
+                                            return (
+                                                <div key={ind}>
+                                                    <b className='pr-1'>{ia.name}</b>
+                                                    {ia.cost && (() => {
+                                                        let isrc = '-';
+                                                        switch (ia.cost.trim()) {
+                                                            case 'Single Action':
+                                                                isrc = singleAction;
+                                                                break;
+                                                            case 'Two Actions':
+                                                                isrc = twoActions;
+                                                                break;
+                                                            case 'Three Actions':
+                                                                isrc = threeActions;
+                                                                break;
+                                                            case 'Free Action':
+                                                                isrc = freeAction;
+                                                                break;
+                                                            case 'Reaction':
+                                                                isrc = reaction;
+                                                                break;
+                                                        }
+                                                        return <img className='img' height='16px' src={isrc}
+                                                                    alt={ia.cost}/>
+                                                    })()}
+                                                    {ia.traits?.length > 0 &&
+                                                    <span className='font-italic'>({ia.traits.join(', ')})</span>}
+                                                    {ia.trigger && <span className='font-italic'><b
+                                                        className='pr-1'>Trigger</b>{ia.trigger}</span>}
+                                                    {ia.requirements && <span className='font-italic'><b
+                                                        className='pr-1'>Requirements</b>{ia.requirements}</span>}
+                                                    <span className='pl-1'>{ia.trigger &&
+                                                    <b className='pr-1'>Effect</b>}{ia.description}</span>
+                                                </div>)
+                                        })
+                                        }
+                                    </div>
+                                </div>
+                                }
+                                <hr/>
+                                <div className='row'>
+                                    <div className='col'>
+                                        <b>Speed</b>
+                                        <span className='pl-1'>{selected.speed}</span>
+                                    </div>
+                                </div>
+                                {selected.actions?.length > 0 &&
+                                <div className='row'>
+                                    <div className='col'>
+                                        {selected.actions.map((ia, ind) => {
+                                            return (
+                                                <div key={ind}>
+                                                    <b className='pr-1'>{ia.name}</b>
+                                                    {ia.cost && (() => {
+                                                        let isrc = '-';
+                                                        switch (ia.cost.trim()) {
+                                                            case 'Single Action':
+                                                                isrc = singleAction;
+                                                                break;
+                                                            case 'Two Actions':
+                                                                isrc = twoActions;
+                                                                break;
+                                                            case 'Three Actions':
+                                                                isrc = threeActions;
+                                                                break;
+                                                            case 'Free Action':
+                                                                isrc = freeAction;
+                                                                break;
+                                                            case 'Reaction':
+                                                                isrc = reaction;
+                                                                break;
+                                                        }
+                                                        return <img className='img' height='16px' src={isrc}
+                                                                    alt={ia.cost}/>
+                                                    })()}
+                                                    {ia.traits?.length > 0 &&
+                                                    <span className='font-italic'>({ia.traits.join(', ')})</span>}
+                                                    {ia.trigger && <span className='font-italic'><b
+                                                        className='pr-1'>Trigger</b>{ia.trigger}</span>}
+                                                    {ia.requirements && <span className='font-italic'><b
+                                                        className='pr-1'>Requirements</b>{ia.requirements}</span>}
+                                                    {ia.damage && <span className='pl-1'><b className='pr-1'>Damage</b>
+                                                        <span className='p-pointer text-gold'
+                                                              onClick={() => roller.current.submitPrompt(ia.damage, `${selected?.name} - ${ia.name}`)}>{ia.damage}</span>
+                                                    </span>}
+                                                    <span className='pl-1'>{ia.trigger &&
+                                                    <b className='pr-1'>Effect</b>}{ia.description}</span>
+                                                </div>)
+                                        })
+                                        }
+                                    </div>
+                                </div>
+                                }
                             </CardContent>
-                        </Card>
-                    </div>}
+                        </Card>}
+                    </div>
                 </div>
                 }
 
